@@ -1,0 +1,487 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lead",
+        "responseMode": "lastNode",
+        "responseData": "allEntries",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "1c5819b7-556a-4d0f-a4ff-6bb6d3052b44",
+      "name": "Webhook",
+      "webhookId": "c7b17cbb-8aff-47ff-a95f-5ff91f28177b"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ac57cf71-2296-436b-b868-45c07c8615ef",
+              "name": "Name",
+              "value": "={{ $json.body.data.fields[0].value }}",
+              "type": "string"
+            },
+            {
+              "id": "dd13c155-ce1d-4c6d-a637-70512b389486",
+              "name": "Email",
+              "value": "={{ $json.body.data.fields[1].value }}",
+              "type": "string"
+            },
+            {
+              "id": "06ac5faf-6e54-4724-bfcc-a29c1446e6bb",
+              "name": "Company_name",
+              "value": "={{ $json.body.data.fields[2].value }}",
+              "type": "string"
+            },
+            {
+              "id": "925ebbcb-cfda-4db1-b88b-8af7999cbf91",
+              "name": "Interest ",
+              "value": "={{\n  $json.body.data.fields[3].options.find(\n    o => o.id === $json.body.data.fields[3].value[0]\n  ).text\n}}\n\n",
+              "type": "string"
+            },
+            {
+              "id": "eb8999bf-a6c8-40b2-b95a-18a5fbb6812f",
+              "name": "Use_case",
+              "value": "={{ $json.body.data.fields[4].value }}",
+              "type": "string"
+            },
+            {
+              "id": "b1d9b57f-48be-4258-9910-c97f2a9eaae7",
+              "name": "Budget",
+              "value": "={{\n  $json.body.data.fields[5].options.find(\n    o => o.id === $json.body.data.fields[5].value[0]\n  ).text\n}}\n",
+              "type": "string"
+            },
+            {
+              "id": "ad1594c3-62ae-4cc8-bde2-3a0d05bf7ceb",
+              "name": "Start_timeline ",
+              "value": "={{\n  $json.body.data.fields[6].options.find(\n    o => o.id === $json.body.data.fields[6].value[0]\n  ).text\n}}\n",
+              "type": "string"
+            },
+            {
+              "id": "d2393b53-f1b7-4387-956e-8f9a5f90630f",
+              "name": "Company_size",
+              "value": "={{\n  $json.body.data.fields[7].options.find(\n    o => o.id === $json.body.data.fields[7].value[0]\n  ).text\n}}",
+              "type": "string"
+            },
+            {
+              "id": "a9727f2b-3349-4a51-9125-e5d89340a420",
+              "name": "Source",
+              "value": "={{\n  $json.body.data.fields[8].options.find(\n    o => o.id === $json.body.data.fields[8].value[0]\n  ).text.trim() \n}}\n",
+              "type": "string"
+            },
+            {
+              "id": "9467fd10-c43f-4f23-a88a-2e6310b449a9",
+              "name": "Anything_else",
+              "value": "={{ $json.body.data.fields[9].value }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "7cdbbf68-70ab-45b8-90da-fdffe5c2bac7",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gemma3:4b",
+          "mode": "list",
+          "cachedResultName": "gemma3:4b"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are a lead scoring and email-writing assistant for my automation agency.\n\nHere is a new lead:\nName: {{$json.Name}}\nEmail: {{$json.Email}}\nCompany: {{$json.Company_name}}\nInterest: {{ $json['Interest '] }}\nUse case: {{$json.Use_case}}\nBudget: {{$json.Budget}}\nStart timeline:{{ $json['Start_timeline '] }}\nCompany size: {{$json.Company_size}}\nSource: {{$json.Source}}\nNotes: {{$json.Anything_else}}\n\n1) Score this lead from 0 to 100 based on fit and urgency.\n2) Classify it as tier A, B, or C.\n3) Explain briefly why.\n4) Draft a short, friendly follow-up email.\n\nAnswer ONLY in JSON with this exact structure:\n{\n  \"score\": 0-100,\n  \"tier\": \"A\" | \"B\" | \"C\",\n  \"reason\": \"one or two sentences\",\n  \"email_subject\": \"string\",\n  \"email_body\": \"string\"\n}\n"
+            }
+          ]
+        },
+        "simplify": false,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.ollama",
+      "typeVersion": 1,
+      "position": [
+        416,
+        0
+      ],
+      "id": "077fe2f9-ddda-4bae-b72c-5f1eda797e45",
+      "name": "Message a model",
+      "credentials": {
+        "ollamaApi": {
+          "id": "ZSVXLO5v3pRyG91U",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// The model returned JSON as a code block inside message.content\nconst raw = $json.message.content;\n\n// Remove ```json ``` wrappers if present\nconst cleaned = raw\n  .replace(/```json/gi, '')\n  .replace(/```/g, '')\n  .trim();\n\n// Parse to object\nconst data = JSON.parse(cleaned);\n\n// Return as one item so the next nodes see score, tier, etc. at top level\nreturn [ { json: data } ];\n;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        768,
+        0
+      ],
+      "id": "eef5fb7a-bcf8-4f1f-a0aa-3d72abd746f8",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1r-eTxP8q2qz2TNCkn3W5evfte4fgt_jO4PlR4CPNWHY",
+          "mode": "list",
+          "cachedResultName": "Leads",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1r-eTxP8q2qz2TNCkn3W5evfte4fgt_jO4PlR4CPNWHY/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1r-eTxP8q2qz2TNCkn3W5evfte4fgt_jO4PlR4CPNWHY/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Names": "={{ $('Edit Fields').item.json.Name }}",
+            "Emails": "={{ $('Edit Fields').item.json.Email }}",
+            "Interest ": "={{ $('Edit Fields').item.json['Interest '] }}",
+            "Use case": "={{ $('Edit Fields').item.json.Use_case }}",
+            "Budget": "={{ $('Edit Fields').item.json.Budget }}",
+            "Start time ": "={{ $('Edit Fields').item.json['Start_timeline '] }}",
+            "Company's size": "={{ $('Edit Fields').item.json.Company_size }}",
+            "Source": "={{ $('Edit Fields').item.json.Source }}",
+            "Company's name": "={{ $('Edit Fields').item.json.Company_name }}",
+            "Extra": "={{ $('Edit Fields').item.json.Anything_else }}",
+            "Score ": "={{ $json.score }}",
+            "Tier": "={{ $json.tier }}",
+            "Reason": "={{ $json.reason }}",
+            "Email subject": "={{ $json.email_subject }}",
+            "Email body": "={{ $json.email_body }}"
+          },
+          "matchingColumns": [
+            "Emails"
+          ],
+          "schema": [
+            {
+              "id": "Names",
+              "displayName": "Names",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Emails",
+              "displayName": "Emails",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Company's name",
+              "displayName": "Company's name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Interest ",
+              "displayName": "Interest ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Use case",
+              "displayName": "Use case",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Budget",
+              "displayName": "Budget",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Start time ",
+              "displayName": "Start time ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Company's size",
+              "displayName": "Company's size",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Source",
+              "displayName": "Source",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Extra",
+              "displayName": "Extra",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Score ",
+              "displayName": "Score ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Tier",
+              "displayName": "Tier",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Reason",
+              "displayName": "Reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Email subject",
+              "displayName": "Email subject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Email body",
+              "displayName": "Email body",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        976,
+        0
+      ],
+      "id": "1575502d-f28b-49dd-b461-0d0465b5fd67",
+      "name": "Append or update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "Pp2oBF9wMbkEqzNu",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.Emails }}",
+        "subject": "={{ $json['Email subject'] }}",
+        "message": "={{ $json['Email body'] }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1408,
+        0
+      ],
+      "id": "75161a75-1732-4c93-9d3c-cc75c800d87d",
+      "name": "Send a message",
+      "webhookId": "390b3bf9-f843-423d-9a1b-69e7000cbb6a",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "Ix7x9yxPfK76kBQE",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "appToken",
+        "email": "={{ $json.Emails }}",
+        "additionalFields": {
+          "companyName": "={{ $json['Company\\'s name'] }}",
+          "companySize": "={{ $json['Company\\'s size'] }}",
+          "firstName": "={{ $json.Names }}"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.hubspot",
+      "typeVersion": 2.2,
+      "position": [
+        1184,
+        0
+      ],
+      "id": "9a623f09-1521-4003-8166-7efcafcb652d",
+      "name": "Create or update a contact",
+      "credentials": {
+        "hubspotAppToken": {
+          "id": "bTPLVMrEV3wN5AsT",
+          "name": "HubSpot account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Append or update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append or update row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Create or update a contact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create or update a contact": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "a095988c-756a-4cc3-8f0a-25883fceb009",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b13f00f6bd4c181cee3e422ea5e8ba009ce1e7bae9bb14f034feeced6a58199e"
+  },
+  "id": "zJrSl-Ml9RrW_gdgaHeoX",
+  "tags": []
+}
