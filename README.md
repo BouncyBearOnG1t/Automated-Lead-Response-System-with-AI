@@ -2,7 +2,7 @@
 
 This project automates lead capture, scoring, CRM updates, and personalized email follow-up using n8n, a local LLM via Ollama, Google Sheets, HubSpot, and Gmail.
 
-![Workflow overview](screenshots/workflow.png)
+![Workflow overview](Screenshots/workflow.png)
 
 
 ## Problem Statement
